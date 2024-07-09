@@ -47,7 +47,7 @@ public class ToutiaoTrendingCrawler implements PageCrawler {
 
             RelativeLocator.RelativeBy below = RelativeLocator.with(loadButton).above(relativeElement);
 
-            tryLocation(driver, below);
+            WebDriverUtil.tryClickByLocator(driver, below, 10);
 
             // find elements
             List<WebElement> elements;
@@ -61,19 +61,6 @@ public class ToutiaoTrendingCrawler implements PageCrawler {
 
             return Mono.just(JacksonUtil.createObjectNode("urls", JacksonUtil.valueToTree(urls)));
         });
-    }
-
-    static void tryLocation(WebDriver driver, By relativeContent) {
-        // # 此处替换为你所需点击元素的具体定位方法
-        while (true) {
-            try {
-                WebElement button = driver.findElement(relativeContent);
-                button.click();
-                Thread.sleep(1000);
-            } catch (NoSuchElementException | InterruptedException e) {
-                break;
-            }
-        }
     }
 
 

@@ -1,8 +1,10 @@
 package com.weisanju.crawler;
 
+import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.weisanju.crawler.crawlers.CrawlerContext;
+import com.weisanju.crawler.crawlers.baidu.BaiduBaijiahaoCrawler;
 import com.weisanju.crawler.crawlers.common.CommonCrawler;
 import com.weisanju.crawler.crawlers.common.RoutedCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoArticlePageCrawler;
@@ -12,6 +14,9 @@ import com.weisanju.crawler.util.JacksonUtil;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServer;
@@ -24,6 +29,20 @@ import java.util.function.BiFunction;
 @Slf4j
 public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpServerResponse, Publisher<Void>> {
     public static void main(String[] args) {
+
+
+        Logger logger = LoggerFactory.getLogger(ReactiveNettyServer.class);
+
+
+        // Remove existing handlers attached to the j.u.l root logger
+        java.util.logging.LogManager.getLogManager().reset();
+
+        // Install the SLF4JBridgeHandler
+        SLF4JBridgeHandler.install();
+
+
+
+
         HttpServer.create()
                 .port(8080)
                 .route(routes -> routes.post("/process", new ReactiveNettyServer())).bindNow()
@@ -35,7 +54,8 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
     static RoutedCrawler matcher = new RoutedCrawler(Arrays.asList(
             new ToutiaoTrendingCrawler(),
             new ToutiaoArticlePageCrawler(),
-            new ToutiaoVideoPageCrawler()
+            new ToutiaoVideoPageCrawler(),
+            new BaiduBaijiahaoCrawler()
     ), new CommonCrawler());
 
 

@@ -27,7 +27,11 @@ public class WebDriverFactory implements PooledObjectFactory<WebDriver> {
     @Override
     public void destroyObject(PooledObject<WebDriver> p) throws Exception {
         // Clean up the object
-        p.getObject().close();
+
+        try {
+            p.getObject().close();
+        } catch (Exception ignore) {
+        }
     }
 
     @Override

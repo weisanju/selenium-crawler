@@ -30,6 +30,10 @@ public class JacksonUtil {
         return objectMapper.valueToTree(value);
     }
 
+    public static JsonNode valueToTree(String value) throws JsonProcessingException {
+        return objectMapper.readTree(value);
+    }
+
 
     public static ArrayNode createArrayNode() {
         return objectMapper.createArrayNode();

@@ -1,5 +1,6 @@
 package com.weisanju.crawler.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.SneakyThrows;
@@ -22,15 +23,21 @@ public class JqUtil {
         return JsonQuery.compile(jsonQuery, Version.LATEST);
     }
 
-    public static ArrayNode evaluate(JsonQuery jsonQuery, String json,String tag) {
+    public static ArrayNode evaluate(JsonQuery jsonQuery, String json, String tag) {
+        if (json == null || json.trim().isEmpty()) {
+            return JacksonUtil.createArrayNode();
+        }
+
         ArrayNode arrayNode = JacksonUtil.createArrayNode();
         try {
             jsonQuery.apply(root, JacksonUtil.valueToTree(json), arrayNode::add);
             return arrayNode;
         } catch (JsonQueryException e) {
             log.error("JsonQueryException|{}", tag, e);
-            return JacksonUtil.createArrayNode();
+        } catch (JsonProcessingException e) {
+            log.error("JsonProcessingException|{}", tag, e);
         }
+        return JacksonUtil.createArrayNode();
     }
 
     public static ArrayNode evaluate(JsonQuery jsonQuery, JsonNode json, String tag) {

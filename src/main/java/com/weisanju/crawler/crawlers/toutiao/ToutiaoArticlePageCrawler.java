@@ -11,7 +11,6 @@ import com.weisanju.crawler.selectors.Selectors;
 import com.weisanju.crawler.util.HttpClientUtil;
 import com.weisanju.crawler.util.JqUtil;
 import net.thisptr.jackson.jq.JsonQuery;
-import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -64,7 +63,7 @@ public class ToutiaoArticlePageCrawler extends CssSelectorPagCrawler {
 
 
     @Override
-    protected Mono<JsonNode> postProcess(ObjectNode objectNode, Document document, CrawlerContext context) {
+    protected Mono<JsonNode> postProcess(ObjectNode objectNode, CrawlerContext context) {
         //获取评论
         String url = context.getRequest().getUrl();
 

@@ -1,20 +1,28 @@
 package com.weisanju.crawler.util;
 
-import org.apache.commons.pool2.DestroyMode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.devtools.v126.network.Network;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Optional;
 
+@Slf4j
 public class WebDriverUtil {
 
 
     static GenericObjectPool<WebDriver> pool;
+
 
     static {
         GenericObjectPoolConfig<WebDriver> config = new GenericObjectPoolConfig<>();
@@ -45,7 +53,7 @@ public class WebDriverUtil {
     }
 
 
-    public static Mono<WebDriver> getWebDriver(int waitCount) {
+    private static Mono<WebDriver> getWebDriver(int waitCount) {
 
         WebDriver webDriver = borrowWebDriver(0);
 
@@ -70,8 +78,7 @@ public class WebDriverUtil {
             return getWebDriver(waitCount);
         }
 
-
-        return Mono.just(webDriver).doOnTerminate(() -> {
+        return Mono.just(webDriver).doFinally((ignore) -> {
             returnWebDriver(webDriver);
         });
     }
@@ -87,4 +94,20 @@ public class WebDriverUtil {
         });
     }
 
+    public static void tryClickByLocator(WebDriver driver, By locator, int count) {
+        // # 此处替换为你所需点击元素的具体定位方法
+        while (true) {
+            if (count <= 0) {
+                break;
+            }
+            try {
+                WebElement button = driver.findElement(locator);
+                button.click();
+                Thread.sleep(300);
+            } catch (NoSuchElementException | InterruptedException e) {
+                break;
+            }
+            count--;
+        }
+    }
 }

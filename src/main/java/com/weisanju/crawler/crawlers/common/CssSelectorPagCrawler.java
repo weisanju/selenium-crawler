@@ -35,34 +35,33 @@ public abstract class CssSelectorPagCrawler implements PageCrawler {
         if (!match(context)) {
             return null;
         }
-
         String url = context.getRequest().getUrl();
-
         Mono<String> sourceMono = WebDriverUtil.getPageSourceReactive(url, getEc());
-
         return sourceMono.map((source) -> {
-
-            Document doc = Jsoup.parse(source, url);
-
-            Html html = new Html(doc);
-
-            ObjectNode objectNode = JacksonUtil.createObjectNode();
-
-            for (Map.Entry<String, Selector> keyAndSelector : selectors.entrySet()) {
-                String key = keyAndSelector.getKey();
-
-                Selector selector = keyAndSelector.getValue();
-
-                objectNode.set(key, html.select(selector).smartContent());
-            }
-
-            CommonCrawler.extractCommonField(objectNode, doc);
-
-            return postProcess(objectNode, doc, context);
+            return postProcess(doSelector(source, url, selectors), context);
         }).flatMap(Function.identity());
     }
 
-    protected Mono<JsonNode> postProcess(ObjectNode objectNode, Document document, CrawlerContext context) {
+    public static ObjectNode doSelector(String source, String url, Map<String, Selector> selectors) {
+        Document doc = Jsoup.parse(source, url);
+        Html html = new Html(doc);
+
+        ObjectNode objectNode = JacksonUtil.createObjectNode();
+
+        for (Map.Entry<String, Selector> keyAndSelector : selectors.entrySet()) {
+            String key = keyAndSelector.getKey();
+
+            Selector selector = keyAndSelector.getValue();
+
+            objectNode.set(key, html.select(selector).smartContent());
+        }
+
+        CommonCrawler.extractCommonField(objectNode, doc);
+
+        return objectNode;
+    }
+
+    protected Mono<JsonNode> postProcess(ObjectNode objectNode, CrawlerContext context) {
         return Mono.just(objectNode);
     }
 
