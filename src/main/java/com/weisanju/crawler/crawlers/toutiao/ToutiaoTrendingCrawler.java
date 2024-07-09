@@ -35,24 +35,24 @@ public class ToutiaoTrendingCrawler implements PageCrawler {
 
         return webDriver.flatMap(driver -> {
 
-            ExpectedCondition<WebElement> ec = ExpectedConditions.presenceOfElementLocated(By.cssSelector("#root"));
+            driver.get(request.getUrl());
+
+            ExpectedCondition<WebElement> ec = ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='block-title'][text()='相关内容']"));
 
             WebDriverWait driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-            driverWait.until(ec);
-
-            By relativeContent = By.xpath("//div[@class='block-title'][text()='相关内容']");
+            WebElement relativeElement = driverWait.until(ec);
 
             By loadButton = By.cssSelector(".load-more button");
 
-            RelativeLocator.RelativeBy below = RelativeLocator.with(loadButton).above(relativeContent);
+            RelativeLocator.RelativeBy below = RelativeLocator.with(loadButton).above(relativeElement);
 
             tryLocation(driver, below);
 
             // find elements
             List<WebElement> elements;
             try {
-                elements = driver.findElements(RelativeLocator.with(By.cssSelector(".block-container a.content,.block-container a.title,.block-container p.content a")).above(relativeContent));
+                elements = driver.findElements(RelativeLocator.with(By.cssSelector(".block-container a.content,.block-container a.title,.block-container p.content a")).above(relativeElement));
             } catch (NoSuchElementException ignore) {
                 elements = Collections.emptyList();
             }

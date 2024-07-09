@@ -33,8 +33,12 @@ public class WebDriverFactory implements PooledObjectFactory<WebDriver> {
     @Override
     public boolean validateObject(PooledObject<WebDriver> p) {
         // Validate the object
+        return isValidateObject(p.getObject());
+    }
+
+    public static boolean isValidateObject(WebDriver p) {
         try {
-            p.getObject().getTitle();
+            p.getTitle();
         } catch (Exception e) {
             return false;
         }
@@ -48,6 +52,5 @@ public class WebDriverFactory implements PooledObjectFactory<WebDriver> {
 
     @Override
     public void passivateObject(PooledObject<WebDriver> p) throws Exception {
-
     }
 }

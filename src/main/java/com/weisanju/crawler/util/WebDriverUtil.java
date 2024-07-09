@@ -1,5 +1,6 @@
 package com.weisanju.crawler.util;
 
+import org.apache.commons.pool2.DestroyMode;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.openqa.selenium.WebDriver;
@@ -17,9 +18,9 @@ public class WebDriverUtil {
 
     static {
         GenericObjectPoolConfig<WebDriver> config = new GenericObjectPoolConfig<>();
-        config.setMaxTotal(10);  // 最大池对象数量
-        config.setMinIdle(10);    // 最小空闲对象数量
-        config.setMaxIdle(10);    // 最大空闲对象数量
+        config.setMaxTotal(8);  // 最大池对象数量
+        config.setMinIdle(2);    // 最小空闲对象数量
+        config.setMaxIdle(6);    // 最大空闲对象数量
 
         WebDriverFactory factory = new WebDriverFactory();
         pool = new GenericObjectPool<>(factory, config);
@@ -57,8 +58,20 @@ public class WebDriverUtil {
             return Mono.delay(Duration.ofMillis(500)).flatMap(ignore -> getWebDriver(waitCount + 1));
         }
 
+        if (!WebDriverFactory.isValidateObject(webDriver)) {
+            returnWebDriver(webDriver);
 
-        return Mono.just(webDriver).doFinally(s -> {
+            try {
+                pool.invalidateObject(webDriver);
+            } catch (Exception ignore) {
+            }
+
+
+            return getWebDriver(waitCount);
+        }
+
+
+        return Mono.just(webDriver).doOnTerminate(() -> {
             returnWebDriver(webDriver);
         });
     }

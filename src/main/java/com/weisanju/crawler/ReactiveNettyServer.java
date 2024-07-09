@@ -10,6 +10,7 @@ import com.weisanju.crawler.crawlers.toutiao.ToutiaoTrendingCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoVideoPageCrawler;
 import com.weisanju.crawler.util.JacksonUtil;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -20,6 +21,7 @@ import reactor.netty.http.server.HttpServerResponse;
 import java.util.Arrays;
 import java.util.function.BiFunction;
 
+@Slf4j
 public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpServerResponse, Publisher<Void>> {
     public static void main(String[] args) {
         HttpServer.create()
@@ -54,6 +56,10 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
 
         Mono<String> map = contextMono.flatMap(ReactiveNettyServer::doExtract).map(JacksonUtil::toJsonString).onErrorResume(x -> {
             response.status(HttpResponseStatus.BAD_REQUEST);
+
+            log.error("error", x);
+
+
             return Mono.just(x.getMessage());
         });
         return response.sendString(map);
@@ -69,7 +75,7 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
                         CrawlerContext contextInner = new CrawlerContext();
                         contextInner.setRequest(new UrlCrawlerRequest(url.asText()));
                         return doExtract(contextInner);
-                    }).collectList().map(JacksonUtil::createArrayNodeFromNode).cast(JsonNode.class);
+                    }, 2).collectList().map(JacksonUtil::createArrayNodeFromNode).cast(JsonNode.class);
                 } else {
                     JsonNode otherUrls = x.get("otherUrls");
                     if (otherUrls != null && otherUrls.isArray()) {
@@ -78,7 +84,7 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
                             CrawlerContext contextInner = new CrawlerContext();
                             contextInner.setRequest(new UrlCrawlerRequest(url.asText()));
                             return doExtract(contextInner);
-                        }).collectList().map(JacksonUtil::createArrayNodeFromNode).doOnNext(x1 -> x1.add(x)).cast(JsonNode.class);
+                        }, 1).collectList().map(JacksonUtil::createArrayNodeFromNode).doOnNext(x1 -> x1.add(x)).cast(JsonNode.class);
                     }
                 }
                 return Mono.just(x);
