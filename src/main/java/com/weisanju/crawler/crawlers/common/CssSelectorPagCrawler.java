@@ -56,7 +56,7 @@ public abstract class CssSelectorPagCrawler implements PageCrawler {
             objectNode.set(key, html.select(selector).smartContent());
         }
 
-        CommonCrawler.extractCommonField(objectNode, doc);
+        CommonCrawler.extractCommonField(objectNode, doc, url);
 
         return objectNode;
     }

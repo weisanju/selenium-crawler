@@ -11,6 +11,7 @@ import com.weisanju.crawler.util.WebDriverUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import reactor.core.publisher.Mono;
+
 public class BaiduSearchCrawler implements PageCrawler {
     @Override
     public Mono<JsonNode> tryExtract(CrawlerContext context) {
@@ -21,7 +22,7 @@ public class BaiduSearchCrawler implements PageCrawler {
         return body.map(x -> {
             ArrayNode links = Selectors.links("a.tts-title,.tts-title a", x, context.getRequest().getUrl());
             ObjectNode objectNode = JacksonUtil.createObjectNode();
-            objectNode.set("urlList", links);
+            objectNode.set("urls", links);
             return objectNode;
         });
     }

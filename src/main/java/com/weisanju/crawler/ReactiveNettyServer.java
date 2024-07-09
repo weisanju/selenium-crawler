@@ -12,6 +12,7 @@ import com.weisanju.crawler.crawlers.common.RoutedCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoArticlePageCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoTrendingCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoVideoPageCrawler;
+import com.weisanju.crawler.crawlers.weibo.WeiboNewsCrawler;
 import com.weisanju.crawler.util.JacksonUtil;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +32,6 @@ import java.util.function.BiFunction;
 @Slf4j
 public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpServerResponse, Publisher<Void>> {
     public static void main(String[] args) {
-
-
-        Logger logger = LoggerFactory.getLogger(ReactiveNettyServer.class);
-
-
         // Remove existing handlers attached to the j.u.l root logger
         java.util.logging.LogManager.getLogManager().reset();
 
@@ -57,7 +53,8 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
             new ToutiaoVideoPageCrawler(),
             new BaiduBaijiahaoCrawler(),
             new BaiduSearchCrawler(),
-            new LinkRedirect()
+            new LinkRedirect(),
+            new WeiboNewsCrawler()
     ), new CommonCrawler());
 
 
@@ -97,7 +94,16 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
                         CrawlerContext contextInner = new CrawlerContext();
                         contextInner.setRequest(new UrlCrawlerRequest(url.asText()));
                         return doExtract(contextInner);
-                    }, 2).collectList().map(JacksonUtil::createArrayNodeFromNode).cast(JsonNode.class);
+                    }, 2).flatMap(x1 -> {
+
+                        //扁平化
+                        if (x1.isArray()) {
+                            return Flux.fromIterable(x1);
+                        } else {
+                            return Mono.just(x1);
+                        }
+
+                    }).collectList().map(JacksonUtil::createArrayNodeFromNode).cast(JsonNode.class);
                 } else {
                     JsonNode otherUrls = x.get("otherUrls");
                     if (otherUrls != null && otherUrls.isArray()) {

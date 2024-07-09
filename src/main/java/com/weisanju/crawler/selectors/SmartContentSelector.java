@@ -1,8 +1,5 @@
 package com.weisanju.crawler.selectors;
 
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -21,21 +18,7 @@ public class SmartContentSelector implements Selector {
     public String select(String html) {
         //将 <p>标签 替换为换行符
 
-        html = Jsoup.clean(html, basicWithImages());
-
-        html = html.replaceAll("<p>(.*?)</p>", "$1\n");
-        html = html.replaceAll("<br>.*?</br>", "\n");
-        html = html.replaceAll("<br/*>", "\n");
-        return html;
-    }
-
-    public static Safelist basicWithImages() {
-        return Safelist.none()
-                .addTags("p")
-                .addTags("video").addAttributes("video", "src", "controls", "autoplay", "loop", "muted", "mediaType")
-                .addTags("img")
-                .addAttributes("img", "align", "alt", "height", "src", "title", "width")
-                .addProtocols("img", "src", "http", "https");
+        return Selectors.cleanHtml(html);
     }
 
     @Override

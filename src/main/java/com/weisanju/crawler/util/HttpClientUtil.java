@@ -66,8 +66,15 @@ public class HttpClientUtil {
                 .get()
                 .uri(url)
                 .responseSingle((response, content) -> {
+                    //fellow redirect
+                    if (response.status().code() == 302 || response.status().code() == 301) {
+                        String locationUrl = response.responseHeaders().get(HttpHeaderNames.LOCATION);
+                        if (locationUrl != null) {
+                            return parseHtml(locationUrl);
+                        }
+                    }
                     if (response.status().code() != 200) {
-                        return Mono.error(new RuntimeException("Failed to download file: " + response.status().code()));
+                        return Mono.error(new RuntimeException(String.format("failDownloadFile,statusCode:%d,url:%s", response.status().code(), url)));
                     }
                     return content.asInputStream()
                             .handle((inputStream, sink) -> {

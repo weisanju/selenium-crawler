@@ -8,6 +8,7 @@ import com.weisanju.crawler.crawlers.CrawlerContext;
 import com.weisanju.crawler.util.HttpClientUtil;
 import com.weisanju.crawler.util.JacksonUtil;
 import com.weisanju.crawler.crawlers.PageCrawler;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import reactor.core.publisher.Mono;
@@ -44,13 +45,17 @@ public class CommonCrawler implements PageCrawler {
             } catch (Exception ignore) {
             }
 
-            extractCommonField(objectNode, doc);
+            extractCommonField(objectNode, doc, url);
 
             return objectNode;
         });
     }
 
-    public static void extractCommonField(ObjectNode extractObj, Document document) {
+    public static void extractCommonField(ObjectNode extractObj, String doc, String url) {
+        extractCommonField(extractObj, Jsoup.parse(doc, url), url);
+    }
+
+    public static void extractCommonField(ObjectNode extractObj, Document document, String url) {
         if (extractObj.get("keywords") == null) {
             extractObj.set("keywords", JacksonUtil.createArrayNode(document.select("html head meta[name=keywords]").eachAttr("content")));
         }
@@ -87,6 +92,8 @@ public class CommonCrawler implements PageCrawler {
         if (extractObj.get("content") == null) {
             extractObj.put("title", extractionWholeText(document));
         }
+
+        extractObj.put("url", url);
     }
 
 

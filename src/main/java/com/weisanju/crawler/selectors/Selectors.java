@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.weisanju.crawler.util.JacksonUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 /**
  * Convenient methods for selectors.<br>
@@ -54,5 +55,27 @@ public abstract class Selectors {
             }
         }
         return arrayNode;
+    }
+
+    public static String css(String css, String doc, String baseUrl) {
+        Elements elements = Jsoup.parse(doc, baseUrl).select(css);
+        return cleanHtml(elements.html());
+    }
+
+    public static Safelist basicWithImages() {
+        return Safelist.none()
+                .addTags("p")
+                .addTags("video").addAttributes("video", "src", "controls", "autoplay", "loop", "muted", "mediaType")
+                .addTags("img")
+                .addAttributes("img", "align", "alt", "height", "src", "title", "width")
+                .addProtocols("img", "src", "http", "https");
+    }
+
+    public static  String cleanHtml(String html) {
+        html = Jsoup.clean(html, basicWithImages());
+        html = html.replaceAll("<p>(.*?)</p>", "$1\n");
+        html = html.replaceAll("<br>.*?</br>", "\n");
+        html = html.replaceAll("<br/*>", "\n");
+        return html;
     }
 }

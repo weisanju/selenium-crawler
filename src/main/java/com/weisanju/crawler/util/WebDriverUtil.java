@@ -44,7 +44,10 @@ public class WebDriverUtil {
 
 
     public static void returnWebDriver(WebDriver driver) {
-        pool.returnObject(driver);
+        try {
+            pool.returnObject(driver);
+        } catch (IllegalStateException ignore) {
+        }
     }
 
 
@@ -90,7 +93,14 @@ public class WebDriverUtil {
             //wait for page load
             WebDriverWait driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
             WebElement ignore = driverWait.until(ec);
-            return driver.getPageSource();
+            String pageSource;
+            try {
+                pageSource = driver.getPageSource();
+            } finally {
+                returnWebDriver(driver);
+            }
+
+            return pageSource;
         });
     }
 

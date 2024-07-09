@@ -14,9 +14,10 @@ public class LinkRedirect implements PageCrawler {
         if (!context.getRequest().getUrl().startsWith("http://www.baidu.com/link?url=")) {
             return null;
         }
+
         Mono<String> redirectUrl = HttpClientUtil.getRedirectUrl(context.getRequest().getUrl());
         return redirectUrl.map(x -> {
-            return JacksonUtil.createObjectNode("redirectUrl", new TextNode(x));
+            return JacksonUtil.createObjectNode("urls", JacksonUtil.createArrayNode( x ));
         });
     }
 }
