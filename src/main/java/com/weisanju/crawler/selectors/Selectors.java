@@ -1,5 +1,10 @@
 package com.weisanju.crawler.selectors;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.weisanju.crawler.util.JacksonUtil;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 /**
  * Convenient methods for selectors.<br>
  *
@@ -13,7 +18,7 @@ public abstract class Selectors {
     }
 
     public static RegexSelector regex(String expr, int group) {
-        return new RegexSelector(expr,group);
+        return new RegexSelector(expr, group);
     }
 
     public static SmartContentSelector smartContent() {
@@ -36,4 +41,18 @@ public abstract class Selectors {
         return new OrSelector(selectors);
     }
 
+
+    public static ArrayNode links(String css, String doc, String baseUrl) {
+        Elements elements = Jsoup.parse(doc, baseUrl).select(css).select("a");
+        ArrayNode arrayNode = JacksonUtil.createArrayNode();
+        for (Element element0 : elements) {
+            String baseUri = element0.baseUri();
+            if (!baseUri.trim().isEmpty()) {
+                arrayNode.add(element0.attr("abs:href"));
+            } else {
+                arrayNode.add(element0.attr("href"));
+            }
+        }
+        return arrayNode;
+    }
 }

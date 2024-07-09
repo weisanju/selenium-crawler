@@ -89,4 +89,14 @@ public class HttpClientUtil {
                 });
     }
 
+    public static Mono<String> getRedirectUrl(String url) {
+        return httpClient.head()
+                .uri(url)
+                .responseSingle((response, content) -> {
+                    if (response.status().code() >= 300 && response.status().code() < 400) {
+                        return Mono.just(response.responseHeaders().get(HttpHeaderNames.LOCATION));
+                    }
+                    return Mono.just(url);
+                });
+    }
 }

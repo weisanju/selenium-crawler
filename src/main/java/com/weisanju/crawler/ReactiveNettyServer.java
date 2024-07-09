@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.weisanju.crawler.crawlers.CrawlerContext;
 import com.weisanju.crawler.crawlers.baidu.BaiduBaijiahaoCrawler;
+import com.weisanju.crawler.crawlers.baidu.BaiduSearchCrawler;
+import com.weisanju.crawler.crawlers.baidu.LinkRedirect;
 import com.weisanju.crawler.crawlers.common.CommonCrawler;
 import com.weisanju.crawler.crawlers.common.RoutedCrawler;
 import com.weisanju.crawler.crawlers.toutiao.ToutiaoArticlePageCrawler;
@@ -41,8 +43,6 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
         SLF4JBridgeHandler.install();
 
 
-
-
         HttpServer.create()
                 .port(8080)
                 .route(routes -> routes.post("/process", new ReactiveNettyServer())).bindNow()
@@ -55,7 +55,9 @@ public class ReactiveNettyServer implements BiFunction<HttpServerRequest, HttpSe
             new ToutiaoTrendingCrawler(),
             new ToutiaoArticlePageCrawler(),
             new ToutiaoVideoPageCrawler(),
-            new BaiduBaijiahaoCrawler()
+            new BaiduBaijiahaoCrawler(),
+            new BaiduSearchCrawler(),
+            new LinkRedirect()
     ), new CommonCrawler());
 
 

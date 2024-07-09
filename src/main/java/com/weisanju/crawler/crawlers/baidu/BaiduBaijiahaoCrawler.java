@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.weisanju.crawler.crawlers.CrawlerContext;
 import com.weisanju.crawler.crawlers.PageCrawler;
 import com.weisanju.crawler.crawlers.common.CssSelectorPagCrawler;
@@ -27,6 +28,7 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,7 +99,7 @@ public class BaiduBaijiahaoCrawler implements PageCrawler {
                 String pageSource = driver.getPageSource();
 
                 ObjectNode objectNode = CssSelectorPagCrawler.doSelector(pageSource, context.getRequest().getUrl(), createSelectors());
-
+                objectNode.set("title", new TextNode(driver.getTitle()));
                 objectNode.set("comments", arrayNode);
                 return objectNode;
             });
