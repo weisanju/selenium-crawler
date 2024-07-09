@@ -2,17 +2,21 @@ package com.weisanju.crawler.crawlers.toutiao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.weisanju.crawler.UrlCrawlerRequest;
-import com.weisanju.crawler.util.WebDriverManager;
 import com.weisanju.crawler.crawlers.CrawlerContext;
 import com.weisanju.crawler.crawlers.PageCrawler;
 import com.weisanju.crawler.util.JacksonUtil;
+import com.weisanju.crawler.util.WebDriverUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.locators.RelativeLocator;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,39 +31,36 @@ public class ToutiaoTrendingCrawler implements PageCrawler {
             return null;
         }
 
-        WebDriver driver = WebDriverManager.borrowWebDriver();
+        Mono<WebDriver> webDriver = WebDriverUtil.getWebDriver();
 
-        driver.get(request.getUrl());
+        return webDriver.flatMap(driver -> {
 
-        // 等待页面加载完毕
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException ignore) {
-        }
+            ExpectedCondition<WebElement> ec = ExpectedConditions.presenceOfElementLocated(By.cssSelector("#root"));
 
+            WebDriverWait driverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        By relativeContent = By.xpath("//div[@class='block-title'][text()='相关内容']");
+            driverWait.until(ec);
 
-        By loadButton = By.cssSelector(".load-more button");
+            By relativeContent = By.xpath("//div[@class='block-title'][text()='相关内容']");
 
-        RelativeLocator.RelativeBy below = RelativeLocator.with(loadButton).above(relativeContent);
+            By loadButton = By.cssSelector(".load-more button");
 
-        tryLocation(driver, below);
+            RelativeLocator.RelativeBy below = RelativeLocator.with(loadButton).above(relativeContent);
 
-        // find elements
-        List<WebElement> elements;
-        try {
-            elements = driver.findElements(RelativeLocator.with(By.cssSelector(".block-container a.content,.block-container a.title,.block-container p.content a")).above(relativeContent));
-        } catch (NoSuchElementException ignore) {
-            elements = Collections.emptyList();
-        }
+            tryLocation(driver, below);
 
-        List<String> urls = elements.stream().map(x -> x.getAttribute("href")).collect(Collectors.toList());
+            // find elements
+            List<WebElement> elements;
+            try {
+                elements = driver.findElements(RelativeLocator.with(By.cssSelector(".block-container a.content,.block-container a.title,.block-container p.content a")).above(relativeContent));
+            } catch (NoSuchElementException ignore) {
+                elements = Collections.emptyList();
+            }
 
-        WebDriverManager.returnWebDriver(driver);
+            List<String> urls = elements.stream().map(x -> x.getAttribute("href")).collect(Collectors.toList());
 
-
-        return Mono.just(JacksonUtil.createObjectNode("urls", JacksonUtil.valueToTree(urls)));
+            return Mono.just(JacksonUtil.createObjectNode("urls", JacksonUtil.valueToTree(urls)));
+        });
     }
 
     static void tryLocation(WebDriver driver, By relativeContent) {

@@ -38,9 +38,9 @@ public abstract class CssSelectorPagCrawler implements PageCrawler {
 
         String url = context.getRequest().getUrl();
 
-        return Mono.fromCallable(() -> {
+        Mono<String> sourceMono = WebDriverUtil.getPageSourceReactive(url, getEc());
 
-            String source = WebDriverUtil.getPageSource(url, getEc());
+        return sourceMono.map((source) -> {
 
             Document doc = Jsoup.parse(source, url);
 
