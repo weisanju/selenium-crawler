@@ -5,43 +5,49 @@ import cn.edu.hfut.dmic.contentextractor.News;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.weisanju.crawler.crawlers.CrawlerContext;
+import com.weisanju.crawler.util.HttpClientUtil;
 import com.weisanju.crawler.util.JacksonUtil;
 import com.weisanju.crawler.crawlers.PageCrawler;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class CommonCrawler implements PageCrawler {
     @Override
-    public JsonNode tryExtract(CrawlerContext context) {
+    public Mono<JsonNode> tryExtract(CrawlerContext context) {
+
         String url = context.getRequest().getUrl();
 
         ObjectNode objectNode = JacksonUtil.createObjectNode();
 
-        Document doc = Jsoup.parse(url);
-        try {
-            News newsByDoc = ContentExtractor.getNewsByDoc(doc);
+        Mono<Document> documentMono = HttpClientUtil.parseHtml(url);
 
-            if (newsByDoc.getTitle()!=null) {
-                objectNode.put("title", newsByDoc.getTitle());
+        return documentMono.map(doc -> {
+
+            try {
+                News newsByDoc = ContentExtractor.getNewsByDoc(doc);
+
+                if (newsByDoc.getTitle() != null) {
+                    objectNode.put("title", newsByDoc.getTitle());
+                }
+
+                if (newsByDoc.getContent() != null) {
+                    objectNode.put("content", newsByDoc.getContent());
+                }
+
+                if (newsByDoc.getTime() != null) {
+                    objectNode.put("pubTime", newsByDoc.getTime());
+                }
+            } catch (Exception ignore) {
             }
 
-            if (newsByDoc.getContent()!=null) {
-                objectNode.put("content", newsByDoc.getContent());
-            }
+            extractCommonField(objectNode, doc);
 
-            if (newsByDoc.getTime()!=null) {
-                objectNode.put("pubTime", newsByDoc.getTime());
-            }
-        } catch (Exception ignore) {
-        }
-
-        extractCommonField(objectNode, doc);
-
-        return objectNode;
+            return objectNode;
+        });
     }
 
     public static void extractCommonField(ObjectNode extractObj, Document document) {

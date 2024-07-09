@@ -26,7 +26,8 @@ public class JqPathSelector implements Selector {
 
     @Override
     public List<String> selectList(String text) {
-        ArrayNode evaluate = JqUtil.evaluate(rule, text);
+
+        ArrayNode evaluate = JqUtil.evaluate(rule, text, "JqPathSelector");
 
         List<String> results = new ArrayList<>();
         for (JsonNode node : evaluate) {

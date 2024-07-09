@@ -2,11 +2,8 @@ package com.weisanju.crawler.crawlers.toutiao;
 
 import com.weisanju.crawler.crawlers.CrawlerContext;
 import com.weisanju.crawler.crawlers.common.CssSelectorPagCrawler;
-import com.weisanju.crawler.selectors.AndSelector;
-import com.weisanju.crawler.selectors.RegexSelector;
 import com.weisanju.crawler.selectors.Selector;
 import com.weisanju.crawler.selectors.Selectors;
-import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;

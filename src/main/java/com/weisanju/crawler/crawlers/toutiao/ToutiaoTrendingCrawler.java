@@ -11,6 +11,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.locators.RelativeLocator;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class ToutiaoTrendingCrawler implements PageCrawler {
     @Override
-    public JsonNode tryExtract(CrawlerContext context) {
+    public Mono<JsonNode> tryExtract(CrawlerContext context) {
 
         UrlCrawlerRequest request = context.getRequest();
 
@@ -53,11 +54,12 @@ public class ToutiaoTrendingCrawler implements PageCrawler {
             elements = Collections.emptyList();
         }
 
-        WebDriverManager.returnWebDriver(driver);
-
         List<String> urls = elements.stream().map(x -> x.getAttribute("href")).collect(Collectors.toList());
 
-        return JacksonUtil.createObjectNode("urls", JacksonUtil.valueToTree(urls));
+        WebDriverManager.returnWebDriver(driver);
+
+
+        return Mono.just(JacksonUtil.createObjectNode("urls", JacksonUtil.valueToTree(urls)));
     }
 
     static void tryLocation(WebDriver driver, By relativeContent) {

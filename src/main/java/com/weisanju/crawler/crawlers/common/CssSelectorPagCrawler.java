@@ -14,8 +14,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class CssSelectorPagCrawler implements PageCrawler {
 
@@ -28,7 +30,7 @@ public abstract class CssSelectorPagCrawler implements PageCrawler {
     protected abstract boolean match(CrawlerContext context);
 
     @Override
-    public JsonNode tryExtract(CrawlerContext context) {
+    public Mono<JsonNode> tryExtract(CrawlerContext context) {
 
         if (!match(context)) {
             return null;
@@ -36,29 +38,34 @@ public abstract class CssSelectorPagCrawler implements PageCrawler {
 
         String url = context.getRequest().getUrl();
 
-        String source = WebDriverUtil.getPageSource(url, getEc());
+        return Mono.fromCallable(() -> {
 
-        Document doc = Jsoup.parse(source, url);
+            String source = WebDriverUtil.getPageSource(url, getEc());
 
-        Html html = new Html(doc);
+            Document doc = Jsoup.parse(source, url);
 
-        ObjectNode objectNode = JacksonUtil.createObjectNode();
+            Html html = new Html(doc);
 
-        for (Map.Entry<String, Selector> keyAndSelector : selectors.entrySet()) {
-            String key = keyAndSelector.getKey();
+            ObjectNode objectNode = JacksonUtil.createObjectNode();
 
-            Selector selector = keyAndSelector.getValue();
-            objectNode.set(key, html.select(selector).smartContent());
-        }
+            for (Map.Entry<String, Selector> keyAndSelector : selectors.entrySet()) {
+                String key = keyAndSelector.getKey();
 
+                Selector selector = keyAndSelector.getValue();
 
-        //url
-        // comments: JsonArray
+                objectNode.set(key, html.select(selector).smartContent());
+            }
 
+            CommonCrawler.extractCommonField(objectNode, doc);
 
-        CommonCrawler.extractCommonField(objectNode, doc);
-        return objectNode;
+            return postProcess(objectNode, doc, context);
+        }).flatMap(Function.identity());
     }
+
+    protected Mono<JsonNode> postProcess(ObjectNode objectNode, Document document, CrawlerContext context) {
+        return Mono.just(objectNode);
+    }
+
 
     protected ExpectedCondition<WebElement> getEc() {
         return ExpectedConditions.visibilityOfElementLocated(By.tagName("body"));

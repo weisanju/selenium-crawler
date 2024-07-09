@@ -122,7 +122,4 @@ public interface Selectable {
      */
     public List<Selectable> nodes();
 
-    default JsonNode jqPath(String rule) {
-        throw new UnsupportedOperationException(String.format("jqPath is not supported for element:%s yet", getClass()));
-    }
 }

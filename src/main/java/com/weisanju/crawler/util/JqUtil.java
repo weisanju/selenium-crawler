@@ -1,11 +1,14 @@
 package com.weisanju.crawler.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import net.thisptr.jackson.jq.*;
 import net.thisptr.jackson.jq.exception.JsonQueryException;
 import net.thisptr.jackson.jq.module.loaders.BuiltinModuleLoader;
 
+@Slf4j
 public class JqUtil {
 
     static Scope root;
@@ -19,13 +22,25 @@ public class JqUtil {
         return JsonQuery.compile(jsonQuery, Version.LATEST);
     }
 
-    public static ArrayNode evaluate(JsonQuery jsonQuery, String json) {
+    public static ArrayNode evaluate(JsonQuery jsonQuery, String json,String tag) {
         ArrayNode arrayNode = JacksonUtil.createArrayNode();
         try {
             jsonQuery.apply(root, JacksonUtil.valueToTree(json), arrayNode::add);
             return arrayNode;
         } catch (JsonQueryException e) {
-            throw new RuntimeException(e);
+            log.error("JsonQueryException|{}", tag, e);
+            return JacksonUtil.createArrayNode();
+        }
+    }
+
+    public static ArrayNode evaluate(JsonQuery jsonQuery, JsonNode json, String tag) {
+        ArrayNode arrayNode = JacksonUtil.createArrayNode();
+        try {
+            jsonQuery.apply(root, json, arrayNode::add);
+            return arrayNode;
+        } catch (JsonQueryException e) {
+            log.error("JsonQueryException|{}", tag, e);
+            return JacksonUtil.createArrayNode();
         }
     }
 
